@@ -61,4 +61,4 @@ Bu proje [MIT Lisansı](LICENSE) altında lisanslanmıştır.
 
 ## 📞 İletişim
 
-Sorularınız veya geri bildirimleriniz için [iletişim bilgilerinizi ekleyin].
+Sorularınız veya geri bildirimleriniz için; www.picksoso.com
