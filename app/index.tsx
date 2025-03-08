@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, KeyboardAvoidingView, Platform, Alert, SafeAreaView, Modal, StatusBar, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, KeyboardAvoidingView, Platform, Alert, SafeAreaView, Modal, StatusBar, Image, Linking } from 'react-native';
 import React, { useState, useEffect, useRef } from 'react';
 import QRCode from 'react-native-qrcode-svg';
 import * as Haptics from 'expo-haptics';
@@ -10,24 +10,22 @@ import * as Sharing from 'expo-sharing';
 import ViewShot from 'react-native-view-shot';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImageManipulator from 'expo-image-manipulator';
+import WifiManager from 'react-native-wifi-reborn';
 
-type QRType = 'text' | 'url' | 'phone' | 'email' | 'wifi' | 'barcode';
+// Services
+import WifiService from './services/WifiService';
+import QRCodeService from './services/QRCodeService';
 
-interface QROption {
-  type: QRType;
-  label: string;
-  placeholder: string;
-  keyboardType: 'default' | 'email-address' | 'numeric' | 'phone-pad' | 'url';
-}
+// Types
+import { QRType, COLOR_SCHEMES, QR_OPTIONS } from './types';
 
-const QR_OPTIONS: QROption[] = [
-  { type: 'text', label: 'Metin', placeholder: 'Metin girin...', keyboardType: 'default' },
-  { type: 'url', label: 'URL', placeholder: 'URL girin... (örn: google.com)', keyboardType: 'url' },
-  { type: 'phone', label: 'Telefon', placeholder: 'Telefon numarası girin...', keyboardType: 'phone-pad' },
-  { type: 'email', label: 'E-posta', placeholder: 'E-posta adresi girin...', keyboardType: 'email-address' },
-  { type: 'wifi', label: 'WiFi', placeholder: 'WiFi şifresi girin...', keyboardType: 'default' },
-  { type: 'barcode', label: 'Barkod', placeholder: 'Barkod numarası girin...', keyboardType: 'numeric' },
-];
+// Components
+import QRTypeSelector from './components/QRTypeSelector';
+import QRInputForm from './components/QRInputForm';
+import QRVisualizer from './components/QRVisualizer';
+import QRStyleOptions from './components/QRStyleOptions';
+import QRScanner from './components/QRScanner';
+import ImageScanner from './components/ImageScanner';
 
 const HomeScreen = () => {
   const [selectedType, setSelectedType] = useState<QRType | null>(null);
@@ -35,6 +33,9 @@ const HomeScreen = () => {
   const [wifiName, setWifiName] = useState('');
   const [qrValue, setQrValue] = useState('');
   const [qrSize, setQrSize] = useState(200);
+  
+  // Daha fazla seçeneklerin görünürlüğü için state
+  const [showMoreOptions, setShowMoreOptions] = useState(false);
   
   // QR renk seçenekleri için state değişkenleri
   const [qrForegroundColor, setQrForegroundColor] = useState('#212529');
@@ -48,27 +49,8 @@ const HomeScreen = () => {
   const [qrMargin, setQrMargin] = useState(10); // QR kod kenar boşluğu
   const [qrErrorLevel, setQrErrorLevel] = useState<'L' | 'M' | 'Q' | 'H'>('M'); // Hata düzeltme seviyesi
   
-  // Artık kullanılmayan ama kod içinde referansları kaldırılmamış olabilecek değişkenler
-  const [qrShape, setQrShape] = useState('square');
-  const [qrStyle, setQrStyle] = useState('dots');
-  const [qrEyeStyle, setQrEyeStyle] = useState('square');
-  
-  // Önceden tanımlanmış renk şemaları
-  const COLOR_SCHEMES = [
-    { name: 'Varsayılan', foreground: '#212529', background: 'white', gradient: ['#3B82F6', '#7048E8'] },
-    { name: 'Klasik', foreground: 'black', background: 'white', gradient: ['black', '#333333'] },
-    { name: 'Kırmızı', foreground: '#E53E3E', background: 'white', gradient: ['#E53E3E', '#C53030'] },
-    { name: 'Yeşil', foreground: '#38A169', background: 'white', gradient: ['#38A169', '#2F855A'] },
-    { name: 'Mavi', foreground: '#3182CE', background: 'white', gradient: ['#3182CE', '#2B6CB0'] },
-    { name: 'Mor', foreground: '#805AD5', background: 'white', gradient: ['#805AD5', '#6B46C1'] },
-    { name: 'Turuncu', foreground: '#DD6B20', background: 'white', gradient: ['#DD6B20', '#C05621'] },
-    { name: 'Pembe', foreground: '#D53F8C', background: 'white', gradient: ['#D53F8C', '#B83280'] },
-  ];
-  
   // QR tarama için değişkenler
-  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [scannerVisible, setScannerVisible] = useState(false);
-  const [scanned, setScanned] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [showImageScanner, setShowImageScanner] = useState(false);
 
@@ -76,12 +58,21 @@ const HomeScreen = () => {
   const qrCodeRef = useRef<ViewShot>(null);
   const barcodeRef = useRef<ViewShot>(null);
 
+  // Kişi kartı için yeni state değişkenleri
+  const [contactName, setContactName] = useState('');
+  const [contactSurname, setContactSurname] = useState('');
+  const [contactPhone, setContactPhone] = useState('');
+  const [contactEmail, setContactEmail] = useState('');
+  const [contactTitle, setContactTitle] = useState('');
+  const [contactCompany, setContactCompany] = useState('');
+  // SMS için mesaj içeriği
+  const [smsMessage, setSmsMessage] = useState('');
+
   // Kamera izinlerini kontrol et
   useEffect(() => {
     (async () => {
       if (scannerVisible) {
         const { status } = await Camera.requestCameraPermissionsAsync();
-        setHasPermission(status === 'granted');
         if (status !== 'granted') {
           Alert.alert(
             'İzin Gerekli',
@@ -93,29 +84,77 @@ const HomeScreen = () => {
     })();
   }, [scannerVisible]);
 
-  // QR kodu tarama işlevi
-  const handleBarCodeScanned = ({ type, data }: BarcodeScanningResult) => {
-    setScanned(true);
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    setScannerVisible(false);
+  // Android için WiFi izinlerini kontrol et
+  const requestAndroidWifiPermissions = async () => {
+    if (Platform.OS !== 'android') return true;
     
+    try {
+      const { PermissionsAndroid } = require('react-native');
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+        {
+          title: 'WiFi bağlantısı için konum izni gerekli',
+          message: 'Bu uygulama, WiFi ağlarını taramak ve bağlanmak için konum izni gerektirir.',
+          buttonNegative: 'REDDET',
+          buttonPositive: 'İZİN VER',
+        }
+      );
+      return granted === PermissionsAndroid.RESULTS.GRANTED;
+    } catch (err) {
+      console.warn(err);
+      return false;
+    }
+  };
+
+  // QR kodu tarama işlevi
+  const handleBarCodeScanned = (type: string, data: string) => {
     // Taranan QR kodun türünü belirle ve state'i güncelle
     if (data.startsWith('http')) {
       setSelectedType('url');
       setInputValue(data);
+      // URL'ye otomatik yönlendirme
+      Linking.canOpenURL(data).then(supported => {
+        if (supported) {
+          Linking.openURL(data);
+        }
+      });
     } else if (data.startsWith('tel:')) {
       setSelectedType('phone');
       setInputValue(data.replace('tel:', ''));
+      // Telefon numarasını arama ekranına yönlendirme
+      Linking.openURL(data);
     } else if (data.startsWith('mailto:')) {
       setSelectedType('email');
       setInputValue(data.replace('mailto:', ''));
+      // E-posta uygulamasına yönlendirme
+      Linking.openURL(data);
     } else if (data.startsWith('WIFI:')) {
       setSelectedType('wifi');
-      const ssidMatch = data.match(/S:(.*?);/);
-      const passwordMatch = data.match(/P:(.*?);/);
+      const { ssid, password } = WifiService.parseWifiQRCode(data);
       
-      if (ssidMatch && ssidMatch[1]) setWifiName(ssidMatch[1]);
-      if (passwordMatch && passwordMatch[1]) setInputValue(passwordMatch[1]);
+      if (ssid) setWifiName(ssid);
+      if (password) setInputValue(password);
+
+      // WiFi ağına otomatik bağlanmayı dene
+      if (ssid) {
+        Alert.alert(
+          'WiFi Bağlantısı',
+          `"${ssid}" ağına bağlanmak istiyor musunuz?`,
+          [
+            { text: 'İptal' },
+            { 
+              text: 'Bağlan', 
+              onPress: () => WifiService.connectToWifi(ssid, password)
+            }
+          ]
+        );
+      } else {
+        Alert.alert(
+          'WiFi Bilgileri Bulundu',
+          `Geçerli WiFi bilgileri bulunamadı.`,
+          [{ text: 'Tamam' }]
+        );
+      }
     } else {
       setSelectedType('text');
       setInputValue(data);
@@ -124,12 +163,19 @@ const HomeScreen = () => {
     // QR değerini doğrudan ayarla
     setQrValue(data);
     
-    // Başarı bildirimi
-    Alert.alert(
-      'QR Kod Bulundu',
-      'Görsel içerisindeki QR kod başarıyla tarandı.',
-      [{ text: 'Tamam' }]
-    );
+    // Başarı bildirimi (otomatik yönlendirme yapıldığı için alert'i sadece text türünde gösterelim)
+    if (
+      !data.startsWith('http') && 
+      !data.startsWith('tel:') && 
+      !data.startsWith('mailto:') &&
+      !data.startsWith('WIFI:')
+    ) {
+      Alert.alert(
+        'QR Kod Bulundu',
+        'Görsel içerisindeki QR kod başarıyla tarandı.',
+        [{ text: 'Tamam' }]
+      );
+    }
   };
 
   // Galeri üzerinden QR kod tarama
@@ -195,16 +241,25 @@ const HomeScreen = () => {
 
   // QR tarama modalini aç
   const openScanner = () => {
-    setScanned(false);
     setScannerVisible(true);
   };
 
   const handleTypeSelect = (type: QRType) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setSelectedType(type);
     setInputValue('');
-    setWifiName('');
     setQrValue('');
+    setWifiName('');
+    // Kişi kartı alanlarını temizle
+    setContactName('');
+    setContactSurname('');
+    setContactPhone('');
+    setContactEmail('');
+    setContactTitle('');
+    setContactCompany('');
+    // SMS mesaj içeriğini temizle
+    setSmsMessage('');
+    // Daha fazla seçenekleri kapat
+    setShowMoreOptions(false);
   };
 
   // Renk şeması seçme fonksiyonu
@@ -276,38 +331,28 @@ const HomeScreen = () => {
 
   const generateQR = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    let value = '';
     
-    switch (selectedType) {
-      case 'text':
-        value = inputValue;
-        break;
-      case 'url':
-        let url = inputValue;
-        if (!url.startsWith('http://') && !url.startsWith('https://')) {
-          url = 'https://' + url;
-        }
-        value = url;
-        break;
-      case 'phone':
-        value = `tel:${inputValue}`;
-        break;
-      case 'email':
-        value = `mailto:${inputValue}`;
-        break;
-      case 'wifi':
-        value = `WIFI:S:${wifiName};T:WPA;P:${inputValue};;`;
-        break;
-      case 'barcode':
-        value = inputValue; // Sayısal değeri doğrudan kullan
-        break;
-      default:
-        break;
-    }
+    if (!selectedType) return;
+    
+    const contactInfo = {
+      name: contactName,
+      surname: contactSurname,
+      phone: contactPhone,
+      email: contactEmail,
+      title: contactTitle,
+      company: contactCompany
+    };
+    
+    const value = QRCodeService.generateQRValue(
+      selectedType,
+      inputValue,
+      wifiName,
+      contactInfo,
+      smsMessage
+    );
     
     setQrValue(value);
-    // QR kod boyutunu içeriğe göre optimize et ama minimum 200 piksel olsun
-    setQrSize(Math.min(250, Math.max(200, 250 - value.length / 10))); 
+    setQrSize(QRCodeService.calculateQRSize(value));
   };
 
   const renderInputField = () => {
@@ -349,44 +394,290 @@ const HomeScreen = () => {
           </View>
         )}
         
-        <View style={{
-          backgroundColor: 'white',
-          borderRadius: 12,
-          paddingHorizontal: 16,
-          paddingVertical: 8,
-          borderWidth: 1,
-          borderColor: '#E9ECEF',
-          marginBottom: 16,
-        }}>
-          <Text style={{
-            fontSize: 12,
-            color: '#6C757D',
-            marginBottom: 4,
-            fontWeight: '500',
-          }}>{selectedOption.label}</Text>
-          <TextInput
-            style={{
-              fontSize: 16,
-              color: '#212529',
+        {selectedType === 'contact' ? (
+          <View>
+            <View style={{
+              backgroundColor: 'white',
+              borderRadius: 12,
+              paddingHorizontal: 16,
               paddingVertical: 8,
-            }}
-            placeholder={selectedOption.placeholder}
-            value={inputValue}
-            onChangeText={setInputValue}
-            keyboardType={selectedOption.keyboardType}
-            autoCapitalize="none"
-            autoCorrect={false}
-            secureTextEntry={selectedType === 'wifi'}
-          />
-        </View>
+              borderWidth: 1,
+              borderColor: '#E9ECEF',
+              marginBottom: 16,
+            }}>
+              <Text style={{
+                fontSize: 12,
+                color: '#6C757D',
+                marginBottom: 4,
+                fontWeight: '500',
+              }}>Ad</Text>
+              <TextInput
+                style={{
+                  fontSize: 16,
+                  color: '#212529',
+                  paddingVertical: 8,
+                }}
+                placeholder="Ad girin..."
+                value={contactName}
+                onChangeText={setContactName}
+                autoCorrect={false}
+              />
+            </View>
+            
+            <View style={{
+              backgroundColor: 'white',
+              borderRadius: 12,
+              paddingHorizontal: 16,
+              paddingVertical: 8,
+              borderWidth: 1,
+              borderColor: '#E9ECEF',
+              marginBottom: 16,
+            }}>
+              <Text style={{
+                fontSize: 12,
+                color: '#6C757D',
+                marginBottom: 4,
+                fontWeight: '500',
+              }}>Soyad</Text>
+              <TextInput
+                style={{
+                  fontSize: 16,
+                  color: '#212529',
+                  paddingVertical: 8,
+                }}
+                placeholder="Soyad girin..."
+                value={contactSurname}
+                onChangeText={setContactSurname}
+                autoCorrect={false}
+              />
+            </View>
+            
+            <View style={{
+              backgroundColor: 'white',
+              borderRadius: 12,
+              paddingHorizontal: 16,
+              paddingVertical: 8,
+              borderWidth: 1,
+              borderColor: '#E9ECEF',
+              marginBottom: 16,
+            }}>
+              <Text style={{
+                fontSize: 12,
+                color: '#6C757D',
+                marginBottom: 4,
+                fontWeight: '500',
+              }}>Telefon</Text>
+              <TextInput
+                style={{
+                  fontSize: 16,
+                  color: '#212529',
+                  paddingVertical: 8,
+                }}
+                placeholder="Telefon numarası girin..."
+                value={contactPhone}
+                onChangeText={setContactPhone}
+                keyboardType="phone-pad"
+                autoCorrect={false}
+              />
+            </View>
+            
+            <View style={{
+              backgroundColor: 'white',
+              borderRadius: 12,
+              paddingHorizontal: 16,
+              paddingVertical: 8,
+              borderWidth: 1,
+              borderColor: '#E9ECEF',
+              marginBottom: 16,
+            }}>
+              <Text style={{
+                fontSize: 12,
+                color: '#6C757D',
+                marginBottom: 4,
+                fontWeight: '500',
+              }}>E-posta</Text>
+              <TextInput
+                style={{
+                  fontSize: 16,
+                  color: '#212529',
+                  paddingVertical: 8,
+                }}
+                placeholder="E-posta adresi girin..."
+                value={contactEmail}
+                onChangeText={setContactEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+            </View>
+            
+            <View style={{
+              backgroundColor: 'white',
+              borderRadius: 12,
+              paddingHorizontal: 16,
+              paddingVertical: 8,
+              borderWidth: 1,
+              borderColor: '#E9ECEF',
+              marginBottom: 16,
+            }}>
+              <Text style={{
+                fontSize: 12,
+                color: '#6C757D',
+                marginBottom: 4,
+                fontWeight: '500',
+              }}>Unvan</Text>
+              <TextInput
+                style={{
+                  fontSize: 16,
+                  color: '#212529',
+                  paddingVertical: 8,
+                }}
+                placeholder="Unvan girin (opsiyonel)..."
+                value={contactTitle}
+                onChangeText={setContactTitle}
+                autoCorrect={false}
+              />
+            </View>
+            
+            <View style={{
+              backgroundColor: 'white',
+              borderRadius: 12,
+              paddingHorizontal: 16,
+              paddingVertical: 8,
+              borderWidth: 1,
+              borderColor: '#E9ECEF',
+              marginBottom: 16,
+            }}>
+              <Text style={{
+                fontSize: 12,
+                color: '#6C757D',
+                marginBottom: 4,
+                fontWeight: '500',
+              }}>Şirket</Text>
+              <TextInput
+                style={{
+                  fontSize: 16,
+                  color: '#212529',
+                  paddingVertical: 8,
+                }}
+                placeholder="Şirket adı girin (opsiyonel)..."
+                value={contactCompany}
+                onChangeText={setContactCompany}
+                autoCorrect={false}
+              />
+            </View>
+          </View>
+        ) : selectedType === 'sms' ? (
+          <View>
+            <View style={{
+              backgroundColor: 'white',
+              borderRadius: 12,
+              paddingHorizontal: 16,
+              paddingVertical: 8,
+              borderWidth: 1,
+              borderColor: '#E9ECEF',
+              marginBottom: 16,
+            }}>
+              <Text style={{
+                fontSize: 12,
+                color: '#6C757D',
+                marginBottom: 4,
+                fontWeight: '500',
+              }}>Telefon Numarası</Text>
+              <TextInput
+                style={{
+                  fontSize: 16,
+                  color: '#212529',
+                  paddingVertical: 8,
+                }}
+                placeholder="Telefon numarası girin..."
+                value={inputValue}
+                onChangeText={setInputValue}
+                keyboardType="phone-pad"
+                autoCorrect={false}
+              />
+            </View>
+            
+            <View style={{
+              backgroundColor: 'white',
+              borderRadius: 12,
+              paddingHorizontal: 16,
+              paddingVertical: 8,
+              borderWidth: 1,
+              borderColor: '#E9ECEF',
+              marginBottom: 16,
+            }}>
+              <Text style={{
+                fontSize: 12,
+                color: '#6C757D',
+                marginBottom: 4,
+                fontWeight: '500',
+              }}>Mesaj İçeriği</Text>
+              <TextInput
+                style={{
+                  fontSize: 16,
+                  color: '#212529',
+                  paddingVertical: 8,
+                }}
+                placeholder="Mesaj içeriği girin (opsiyonel)..."
+                value={smsMessage}
+                onChangeText={setSmsMessage}
+                multiline={true}
+                numberOfLines={3}
+                autoCorrect={false}
+              />
+            </View>
+          </View>
+        ) : (
+          <View style={{
+            backgroundColor: 'white',
+            borderRadius: 12,
+            paddingHorizontal: 16,
+            paddingVertical: 8,
+            borderWidth: 1,
+            borderColor: '#E9ECEF',
+            marginBottom: 16,
+          }}>
+            <Text style={{
+              fontSize: 12,
+              color: '#6C757D',
+              marginBottom: 4,
+              fontWeight: '500',
+            }}>{selectedOption.label}</Text>
+            <TextInput
+              style={{
+                fontSize: 16,
+                color: '#212529',
+                paddingVertical: 8,
+              }}
+              placeholder={selectedOption.placeholder}
+              value={inputValue}
+              onChangeText={setInputValue}
+              keyboardType={selectedOption.keyboardType}
+              autoCapitalize="none"
+              autoCorrect={false}
+              secureTextEntry={selectedType === 'wifi'}
+            />
+          </View>
+        )}
         
         <TouchableOpacity 
           style={[
             styles.generateButton, 
-            (!inputValue || (selectedType === 'wifi' && !wifiName)) ? styles.buttonDisabled : null
+            (!inputValue && selectedType !== 'contact' && selectedType !== 'sms') || 
+            (selectedType === 'wifi' && !wifiName) || 
+            (selectedType === 'contact' && (!contactName || !contactSurname)) ||
+            (selectedType === 'sms' && !inputValue)
+              ? styles.buttonDisabled 
+              : null
           ]} 
           onPress={generateQR}
-          disabled={!inputValue || (selectedType === 'wifi' && !wifiName)}
+          disabled={
+            (!inputValue && selectedType !== 'contact' && selectedType !== 'sms') || 
+            (selectedType === 'wifi' && !wifiName) || 
+            (selectedType === 'contact' && (!contactName || !contactSurname)) ||
+            (selectedType === 'sms' && !inputValue)
+          }
         >
           <Text style={styles.buttonText}>QR Oluştur</Text>
         </TouchableOpacity>
@@ -500,391 +791,92 @@ const HomeScreen = () => {
             </View>
           </TouchableOpacity>
           
-          <View style={styles.optionsContainer}>
-            <Text style={styles.sectionTitle}>QR Kod Türü Seçin</Text>
-            <View style={styles.optionsGrid}>
-              {QR_OPTIONS.map((option) => (
-                <TouchableOpacity 
-                  key={option.type}
-                  style={[
-                    styles.optionButton, 
-                    selectedType === option.type && styles.selectedOption
-                  ]} 
-                  onPress={() => handleTypeSelect(option.type)}
-                >
-                  <Text style={[
-                    styles.optionText,
-                    selectedType === option.type && styles.selectedOptionText
-                  ]}>
-                    {option.label}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
+          {/* QR Kod Türü Seçimi */}
+          <QRTypeSelector 
+            selectedType={selectedType} 
+            onTypeSelect={handleTypeSelect} 
+          />
           
-          {renderInputField()}
+          {/* QR Kod İçerik Formu */}
+          <QRInputForm
+            selectedType={selectedType}
+            inputValue={inputValue}
+            setInputValue={setInputValue}
+            wifiName={wifiName}
+            setWifiName={setWifiName}
+            contactName={contactName}
+            setContactName={setContactName}
+            contactSurname={contactSurname}
+            setContactSurname={setContactSurname}
+            contactPhone={contactPhone}
+            setContactPhone={setContactPhone}
+            contactEmail={contactEmail}
+            setContactEmail={setContactEmail}
+            contactTitle={contactTitle}
+            setContactTitle={setContactTitle}
+            contactCompany={contactCompany}
+            setContactCompany={setContactCompany}
+            smsMessage={smsMessage}
+            setSmsMessage={setSmsMessage}
+            generateQR={generateQR}
+          />
           
-          {qrValue ? (
-            <View style={styles.qrContainer}>
-              {selectedType === 'barcode' ? (
-                <View style={{ marginBottom: 10 }}>
-                  <Text style={styles.barcodeCaption}>Barkod</Text>
-                  <ViewShot ref={barcodeRef} options={{ format: 'png', quality: 1 }}>
-                    <Barcode
-                      value={qrValue}
-                      format="CODE128"
-                      width={280}
-                      height={100}
-                      background="white"
-                      lineColor="black"
-                      margin={20}
-                      fontSize={14}
-                    />
-                  </ViewShot>
-                </View>
-              ) : (
-                <>
-                  <View style={{ marginBottom: 15, alignItems: 'center', justifyContent: 'center' }}>
-                    <ViewShot ref={qrCodeRef} options={{ format: 'png', quality: 1 }}>
-                      <View style={{ 
-                        padding: 20, 
-                        backgroundColor: 'white',
-                        borderRadius: 16,
-                        shadowColor: '#000',
-                        shadowOffset: { width: 0, height: 1 },
-                        shadowOpacity: 0.05,
-                        shadowRadius: 3,
-                        elevation: 2
-                      }}>
-                        <QRCode
-                          value={qrValue}
-                          size={qrSize}
-                          backgroundColor={qrBackgroundColor}
-                          color={qrForegroundColor}
-                          quietZone={qrMargin}
-                          enableLinearGradient={useGradient}
-                          linearGradient={gradientColors}
-                          logo={logoEnabled && logoUri ? { uri: logoUri } : undefined}
-                          logoSize={logoEnabled && logoUri ? qrSize * 0.2 : 0}
-                          logoBackgroundColor="white"
-                          logoMargin={5}
-                          logoBorderRadius={10}
-                          ecl={qrErrorLevel}
-                        />
-                      </View>
-                    </ViewShot>
-                  </View>
-                  
-                  {/* Renk Seçenekleri */}
-                  <View style={{ width: '100%', marginBottom: 15 }}>
-                    <Text style={styles.sectionTitle}>Renk Seçenekleri</Text>
-                    
-                    {/* Gradyan Açma/Kapama */}
-                    <TouchableOpacity 
-                      style={[styles.gradientToggle, useGradient ? styles.gradientActive : {}]}
-                      onPress={toggleGradient}
-                    >
-                      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-                        <Ionicons 
-                          name={useGradient ? "color-fill" : "color-fill-outline"} 
-                          size={20} 
-                          color={useGradient ? "white" : "#495057"} 
-                          style={{ marginRight: 8 }} 
-                        />
-                        <Text style={[styles.gradientToggleText, useGradient ? styles.gradientActiveText : {}]}>
-                          {useGradient ? 'Gradyan Açık' : 'Gradyan Kapalı'}
-                        </Text>
-                      </View>
-                    </TouchableOpacity>
-                    
-                    {/* Renk Şemaları */}
-                    <ScrollView 
-                      horizontal 
-                      showsHorizontalScrollIndicator={false}
-                      style={{ marginTop: 15 }}
-                      contentContainerStyle={{ paddingHorizontal: 5 }}
-                    >
-                      {COLOR_SCHEMES.map((scheme, index) => (
-                        <TouchableOpacity
-                          key={scheme.name}
-                          style={[
-                            styles.colorSchemeButton,
-                            {
-                              borderColor: 
-                                qrForegroundColor === scheme.foreground && 
-                                gradientColors[0] === scheme.gradient[0] ? 
-                                '#3B82F6' : 'transparent'
-                            }
-                          ]}
-                          onPress={() => handleColorSchemeSelect(index)}
-                        >
-                          <View style={[
-                            styles.colorPreview, 
-                            { 
-                              backgroundColor: scheme.gradient[0],
-                              borderWidth: 1,
-                              borderColor: '#E9ECEF'
-                            },
-                            useGradient && {
-                              backgroundColor: 'white',
-                              overflow: 'hidden'
-                            }
-                          ]}>
-                            {useGradient && (
-                              <View style={{
-                                position: 'absolute',
-                                left: 0,
-                                right: 0,
-                                top: 0,
-                                bottom: 0,
-                                backgroundColor: scheme.gradient[0],
-                                transform: [{ rotate: '45deg' }],
-                                width: '200%',
-                                height: '200%',
-                                marginLeft: -20,
-                                marginTop: -20,
-                              }} />
-                            )}
-                            {useGradient && (
-                              <View style={{
-                                position: 'absolute',
-                                left: 0,
-                                right: 0,
-                                top: 0,
-                                bottom: 0,
-                                backgroundColor: scheme.gradient[1],
-                                transform: [{ rotate: '-45deg' }],
-                                width: '200%',
-                                height: '200%',
-                                marginLeft: -20,
-                                marginTop: -20,
-                                opacity: 0.8
-                              }} />
-                            )}
-                          </View>
-                          <Text style={styles.colorSchemeName}>{scheme.name}</Text>
-                        </TouchableOpacity>
-                      ))}
-                    </ScrollView>
-                  </View>
-                  
-                  {/* Tasarım Seçenekleri */}
-                  <View style={{ width: '100%', marginBottom: 15 }}>
-                    <Text style={styles.sectionTitle}>Tasarım Seçenekleri</Text>
-                    
-                    {/* Logo Ekleme */}
-                    <TouchableOpacity 
-                      style={[styles.designOption, logoEnabled ? styles.designOptionActive : {}]}
-                      onPress={logoUri ? toggleLogo : pickLogo}
-                    >
-                      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-                        <Ionicons 
-                          name={logoEnabled ? "image" : "image-outline"} 
-                          size={20} 
-                          color={logoEnabled ? "white" : "#495057"} 
-                          style={{ marginRight: 8 }} 
-                        />
-                        <Text style={[
-                          styles.designOptionText, 
-                          logoEnabled ? styles.designOptionActiveText : {}
-                        ]}>
-                          {logoUri ? (logoEnabled ? 'Logo Açık' : 'Logo Kapalı') : 'Logo Ekle'}
-                        </Text>
-                      </View>
-                    </TouchableOpacity>
-                    
-                    {/* QR Kod Kenar Boşluğu */}
-                    <View style={{ marginTop: 15 }}>
-                      <Text style={styles.optionLabel}>Kenar Boşluğu</Text>
-                      <View style={styles.designOptionsRow}>
-                        {[5, 10, 15, 20].map((margin) => (
-                          <TouchableOpacity 
-                            key={`margin-${margin}`}
-                            style={[
-                              styles.designOptionButton, 
-                              qrMargin === margin ? styles.designOptionButtonActive : {}
-                            ]}
-                            onPress={() => changeQrMargin(margin)}
-                          >
-                            <View style={{
-                              width: 24,
-                              height: 24,
-                              borderWidth: margin === 5 ? 1 : margin === 10 ? 2 : margin === 15 ? 3 : 4,
-                              borderColor: qrMargin === margin ? "#3B82F6" : "#ADB5BD",
-                              backgroundColor: 'white',
-                            }} />
-                            <Text style={styles.designOptionButtonText}>{margin}</Text>
-                          </TouchableOpacity>
-                        ))}
-                      </View>
-                    </View>
-                    
-                    {/* QR Kod Hata Düzeltme Seviyesi */}
-                    <View style={{ marginTop: 15 }}>
-                      <Text style={styles.optionLabel}>Hata Düzeltme</Text>
-                      <View style={styles.designOptionsRow}>
-                        {(['L', 'M', 'Q', 'H'] as const).map((level) => (
-                          <TouchableOpacity 
-                            key={`level-${level}`}
-                            style={[
-                              styles.designOptionButton, 
-                              qrErrorLevel === level ? styles.designOptionButtonActive : {}
-                            ]}
-                            onPress={() => changeQrErrorLevel(level)}
-                          >
-                            <Ionicons 
-                              name={
-                                level === 'L' ? "shield-outline" : 
-                                level === 'M' ? "shield-half-outline" : 
-                                level === 'Q' ? "shield" : "shield-checkmark"
-                              } 
-                              size={24} 
-                              color={qrErrorLevel === level ? "#3B82F6" : "#ADB5BD"} 
-                            />
-                            <Text style={styles.designOptionButtonText}>
-                              {level === 'L' ? 'Düşük' : 
-                               level === 'M' ? 'Orta' : 
-                               level === 'Q' ? 'Yüksek' : 'En Yüksek'}
-                            </Text>
-                          </TouchableOpacity>
-                        ))}
-                      </View>
-                    </View>
-                  </View>
-                </>
-              )}
-              <Text style={styles.qrInfo}>
-                {selectedType === 'wifi' 
-                  ? `WiFi: ${wifiName}`
-                  : selectedType === 'barcode'
-                  ? 'Barkod'
-                  : `${selectedType?.toUpperCase()} QR Kodu`}
-              </Text>
+          {/* QR Kod Gösterimi */}
+          {qrValue && (
+            <>
+              <QRVisualizer
+                ref={selectedType === 'barcode' ? barcodeRef : qrCodeRef}
+                selectedType={selectedType}
+                qrValue={qrValue}
+                qrSize={qrSize}
+                qrBackgroundColor={qrBackgroundColor}
+                qrForegroundColor={qrForegroundColor}
+                qrMargin={qrMargin}
+                useGradient={useGradient}
+                gradientColors={gradientColors}
+                logoEnabled={logoEnabled}
+                logoUri={logoUri}
+                qrErrorLevel={qrErrorLevel}
+                wifiName={wifiName}
+                onShare={shareQRCode}
+              />
               
-              {/* İndirme Butonu */}
-              <TouchableOpacity 
-                style={styles.downloadButton}
-                onPress={shareQRCode}
-              >
-                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-                  <Ionicons name="share-outline" size={20} color="white" style={{ marginRight: 8 }} />
-                  <Text style={styles.downloadButtonText}>İndir / Paylaş</Text>
-                </View>
-              </TouchableOpacity>
-            </View>
-          ) : null}
+              {/* QR Kod Stil Seçenekleri (Barkod türü seçili değilse) */}
+              {selectedType !== 'barcode' && (
+                <QRStyleOptions
+                  useGradient={useGradient}
+                  toggleGradient={toggleGradient}
+                  qrForegroundColor={qrForegroundColor}
+                  gradientColors={gradientColors}
+                  onColorSchemeSelect={handleColorSchemeSelect}
+                  qrMargin={qrMargin}
+                  changeQrMargin={changeQrMargin}
+                  qrErrorLevel={qrErrorLevel}
+                  changeQrErrorLevel={changeQrErrorLevel}
+                  logoEnabled={logoEnabled}
+                  toggleLogo={toggleLogo}
+                  logoUri={logoUri}
+                  pickLogo={pickLogo}
+                />
+              )}
+            </>
+          )}
           
           {/* QR Kod Tarama Modalı */}
-          <Modal
+          <QRScanner
             visible={scannerVisible}
-            animationType="slide"
-            onRequestClose={() => setScannerVisible(false)}
-          >
-            <SafeAreaView style={styles.modalContainer}>
-              <StatusBar
-                backgroundColor="black" 
-                barStyle="light-content"
-                translucent={true}
-              />
-              {hasPermission === null ? (
-                <Text style={styles.modalText}>Kamera izni isteniyor...</Text>
-              ) : hasPermission === false ? (
-                <Text style={styles.modalText}>Kamera erişimi bulunmuyor.</Text>
-              ) : (
-                <View style={styles.cameraContainer}>
-                  <CameraView
-                    style={StyleSheet.absoluteFillObject}
-                    facing="back"
-                    barcodeScannerSettings={{
-                      barcodeTypes: ["qr"],
-                    }}
-                    onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
-                  />
-                  <View style={styles.scanOverlay}>
-                    <View style={styles.scanFrame} />
-                    <Text style={{
-                      color: 'white',
-                      fontSize: 16,
-                      fontWeight: '600',
-                      marginTop: 30,
-                      textAlign: 'center',
-                      width: '80%',
-                    }}>
-                      QR kodu çerçeve içine yerleştirin
-                    </Text>
-                  </View>
-                </View>
-              )}
-              
-              <View style={styles.modalButtons}>
-                <TouchableOpacity 
-                  style={styles.modalButton} 
-                  onPress={() => setScannerVisible(false)}
-                >
-                  <Text style={styles.modalButtonText}>İptal</Text>
-                </TouchableOpacity>
-                
-                <TouchableOpacity 
-                  style={[styles.modalButton, styles.galleryButton]} 
-                  onPress={pickImageAndScan}
-                >
-                  <Text style={styles.modalButtonText}>Galeriden Seç</Text>
-                </TouchableOpacity>
-              </View>
-            </SafeAreaView>
-          </Modal>
+            onClose={() => setScannerVisible(false)}
+            onCodeScanned={handleBarCodeScanned}
+            onImagePick={pickImageAndScan}
+          />
           
           {/* Galeriden Seçilen Görsel QR Tarama Modalı */}
-          <Modal
+          <ImageScanner
             visible={showImageScanner}
-            animationType="slide"
-            onRequestClose={closeImageScanner}
-          >
-            <SafeAreaView style={styles.modalContainer}>
-              <StatusBar
-                backgroundColor="black" 
-                barStyle="light-content"
-                translucent={true}
-              />
-              <View style={styles.imageModalContainer}>
-                <Text style={styles.imageModalTitle}>Galeriden QR Kod Tarama</Text>
-                
-                {selectedImage ? (
-                  <View style={styles.selectedImageContainer}>
-                    <Image 
-                      source={{ uri: selectedImage }} 
-                      style={styles.selectedImage} 
-                      resizeMode="contain"
-                    />
-                    <Text style={styles.imageInstructions}>
-                      QR kodun bulunduğu görsel seçildi. Bu görseli taramak için "Kamera ile Tara" butonuna basın.
-                    </Text>
-                  </View>
-                ) : (
-                  <View style={styles.noImageContainer}>
-                    <Text style={styles.noImageText}>Görsel seçilmedi</Text>
-                  </View>
-                )}
-                
-                <View style={styles.imageModalButtons}>
-                  <TouchableOpacity 
-                    style={styles.modalButton} 
-                    onPress={closeImageScanner}
-                  >
-                    <Text style={styles.modalButtonText}>İptal</Text>
-                  </TouchableOpacity>
-                  
-                  <TouchableOpacity 
-                    style={[styles.modalButton, { backgroundColor: '#3B82F6' }]} 
-                    onPress={scanSelectedImage}
-                  >
-                    <Text style={styles.modalButtonText}>Kamera ile Tara</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </SafeAreaView>
-          </Modal>
+            onClose={closeImageScanner}
+            onScan={scanSelectedImage}
+            selectedImage={selectedImage}
+          />
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>

@@ -1,144 +1,98 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import Svg, { Line, G, Text as SvgText } from 'react-native-svg';
+import { View, Text, StyleSheet } from 'react-native';
+import Svg, { Rect, G, Text as SvgText } from 'react-native-svg';
 
 interface BarcodeProps {
   value: string;
-  format?: 'CODE128' | 'EAN13' | 'UPC';
-  width?: number;
-  height?: number;
+  format?: string;
+  width: number;
+  height: number;
   background?: string;
   lineColor?: string;
   margin?: number;
   fontSize?: number;
 }
 
-// React Native için basit bir barkod bileşeni
-const Barcode = (props: BarcodeProps) => {
-  const {
-    value,
-    format = 'CODE128',
-    width = 280,
-    height = 80,
-    background = '#ffffff',
-    lineColor = '#000000',
-    margin = 20,
-    fontSize = 12
-  } = props;
+const generateBarcodeArray = (value: string): number[] => {
+  // Basit bir barkod algoritması - gerçek uygulamada daha karmaşık bir algoritma kullanılabilir
+  // Bu örnek, rastgele genişliklerde çizgiler oluşturmak içindir
+  const barWidths: number[] = [];
   
-  // Barkod çizgileri oluşturma fonksiyonu
-  const generateBars = () => {
-    if (!value || value.length === 0) return [];
-    
+  // Basit kod128 benzeri bir yapı (sadece görsel örnek için)
+  // Başlangıç guard barı
+  barWidths.push(1, 1, 1);
+  
+  // Her karakter için çizgiler oluştur
+  for (let i = 0; i < value.length; i++) {
+    const charCode = value.charCodeAt(i);
+    // Karakterin ASCII değerine göre çizgi genişlikleri oluştur
+    barWidths.push(charCode % 3 + 1);  // 1, 2 veya 3 birim genişlik
+    barWidths.push(1);  // Boşluk
+  }
+  
+  // Bitiş guard barı
+  barWidths.push(1, 1, 2);
+  
+  return barWidths;
+};
+
+const Barcode: React.FC<BarcodeProps> = ({
+  value,
+  format = 'CODE128',
+  width = 200,
+  height = 80,
+  background = 'white',
+  lineColor = 'black',
+  margin = 10,
+  fontSize = 12
+}) => {
+  const barcodeArray = generateBarcodeArray(value);
+  const contentWidth = width - (margin * 2);
+  const totalUnits = barcodeArray.reduce((sum, val) => sum + val, 0);
+  const unitWidth = contentWidth / totalUnits;
+
+  const renderBars = () => {
     const bars = [];
-    let xPos = margin;
-    const narrowBar = 2;
-    const wideBar = 4;
-    const gap = 2;
+    let currentX = margin;
     
-    // Başlangıç çizgileri (quiet zone)
-    bars.push(
-      <Line
-        key="start1"
-        x1={margin / 2}
-        y1={margin}
-        x2={margin / 2}
-        y2={height - margin - 20}
-        stroke={lineColor}
-        strokeWidth={narrowBar}
-      />
-    );
-    bars.push(
-      <Line
-        key="start2"
-        x1={margin / 2 + narrowBar + gap}
-        y1={margin}
-        x2={margin / 2 + narrowBar + gap}
-        y2={height - margin - 20}
-        stroke={lineColor}
-        strokeWidth={narrowBar}
-      />
-    );
-    
-    xPos = margin + narrowBar * 3 + gap * 3;
-    
-    // Değere bağlı olarak barkod çizgileri
-    for (let i = 0; i < value.length; i++) {
-      const char = value.charCodeAt(i);
+    for (let i = 0; i < barcodeArray.length; i++) {
+      const barWidth = barcodeArray[i] * unitWidth;
       
-      // Algoritma: Her karakter için ASCII değerine göre çizgi genişliği belirleme
-      const barCount = format === 'EAN13' || format === 'UPC' ? 7 : 4; // Barkod formatına göre
-      
-      for (let j = 0; j < barCount; j++) {
-        // Her karakter için farklı kalınlıkta çizgiler oluştur
-        const mod = (char + j) % 4;
-        const barWidth = mod < 2 ? narrowBar : wideBar;
-        const isBar = j % 2 === 0; // Çizgiler ve boşluklar için
-        
-        if (isBar) {
-          bars.push(
-            <Line
-              key={`bar-${i}-${j}`}
-              x1={xPos}
-              y1={margin}
-              x2={xPos}
-              y2={height - margin - 20}
-              stroke={lineColor}
-              strokeWidth={barWidth}
-            />
-          );
-        }
-        
-        xPos += barWidth + gap;
+      // Sadece tek indekslerde çizgi çiz (0, 2, 4, ...)
+      if (i % 2 === 0) {
+        bars.push(
+          <Rect
+            key={`bar-${i}`}
+            x={currentX}
+            y={margin}
+            width={barWidth}
+            height={height - margin * 3 - fontSize}
+            fill={lineColor}
+          />
+        );
       }
       
-      // Karakterler arasında boşluk
-      xPos += gap * 2;
+      currentX += barWidth;
     }
-    
-    // Bitiş çizgileri (quiet zone)
-    bars.push(
-      <Line
-        key="end1"
-        x1={width - margin / 2 - narrowBar - gap}
-        y1={margin}
-        x2={width - margin / 2 - narrowBar - gap}
-        y2={height - margin - 20}
-        stroke={lineColor}
-        strokeWidth={narrowBar}
-      />
-    );
-    bars.push(
-      <Line
-        key="end2"
-        x1={width - margin / 2}
-        y1={margin}
-        x2={width - margin / 2}
-        y2={height - margin - 20}
-        stroke={lineColor}
-        strokeWidth={narrowBar}
-      />
-    );
     
     return bars;
   };
-  
+
   return (
-    <View style={styles.container}>
-      <Svg height={height} width={width} style={{ backgroundColor: background }}>
-        <G>
-          {generateBars()}
-          <SvgText
-            x={width / 2}
-            y={height - margin + 5}
-            textAnchor="middle"
-            fontWeight="bold"
-            fontSize={fontSize}
-            fill={lineColor}
-          >
-            {value}
-          </SvgText>
-        </G>
+    <View style={[styles.container, { width, height }]}>
+      <Svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
+        <Rect width={width} height={height} fill={background} />
+        <G>{renderBars()}</G>
+        <SvgText
+          fill={lineColor}
+          fontSize={fontSize}
+          fontWeight="normal"
+          x={width / 2}
+          y={height - margin}
+          textAnchor="middle"
+        >
+          {value}
+        </SvgText>
       </Svg>
     </View>
   );

@@ -22,13 +22,23 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSLocalNetworkUsageDescription": "Bu uygulama WiFi ağlarını taramak ve bağlanmak için yerel ağ erişimine ihtiyaç duyar.",
+        "NSLocationWhenInUseUsageDescription": "Bu uygulama WiFi ağlarını taramak ve bağlanmak için konum erişimine ihtiyaç duyar.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Bu uygulama WiFi ağlarını taramak ve bağlanmak için konum erişimine ihtiyaç duyar."
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "permissions": [
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_WIFI_STATE",
+        "android.permission.CHANGE_WIFI_STATE"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -45,7 +55,8 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
-      ]
+      ],
+      "react-native-wifi-reborn"
     ],
     "experiments": {
       "typedRoutes": true
