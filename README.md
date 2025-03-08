@@ -1,42 +1,64 @@
 # QR-Gen
 
-React Native ile geliştirilmiş, QR kod oluşturma ve okuma özelliklerine sahip mobil uygulama.
+QR-Gen, QR kodları ve barkodlar oluşturmanıza, özelleştirmenize, taramanıza ve paylaşmanıza olanak tanıyan bir mobil uygulamadır. Expo ve React Native ile geliştirilmiştir.
 
-Bu bir [Expo](https://expo.dev) projesidir, [`create-expo-app`](https://www.npmjs.com/package/create-expo-app) ile oluşturulmuştur.
+## 🚀 Özellikler
 
-## Başlangıç
+- **QR Kod Oluşturma**: Metin, URL, telefon numarası, e-posta ve WiFi bilgileri için QR kodlar oluşturun
+- **Barkod Oluşturma**: Çeşitli formatlarda barkodlar oluşturun
+- **QR Kod Özelleştirme**: 
+  - Renkler ve gradyan seçenekleri
+  - Logo ekleme
+  - Kenar boşluğu ayarlama
+  - Hata düzeltme seviyesi belirleme
+- **QR Kod ve Barkod Tarama**: Kamera kullanarak QR kodları ve barkodları tarayın
+- **Galeri Tarama**: Galeriden seçilen görsellerden QR kodu okuma
+- **Paylaşım**: Oluşturduğunuz QR kodları resim olarak kaydedin ve paylaşın
 
-1. Bağımlılıkları yükleyin
+## 💻 Kurulum
 
-   ```bash
-   npm install
-   ```
+1. Projeyi klonlayın:
+```bash
+git clone https://github.com/your-username/qr-gen.git
+cd qr-gen
+```
 
-2. Uygulamayı başlatın
+2. Bağımlılıkları yükleyin:
+```bash
+npm install
+# veya
+yarn install
+```
 
-   ```bash
-    npx expo start
-   ```
+3. Uygulamayı başlatın:
+```bash
+npm start
+# veya
+yarn start
+```
 
-Çıktıda, uygulamayı şunlarda açmak için seçenekler bulacaksınız:
+## 📱 Kullanım
 
-- [Development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), Expo ile uygulama geliştirmeyi denemek için sınırlı bir sandbox
+1. Uygulamayı açın ve oluşturmak istediğiniz QR kod türünü seçin (Metin, URL, Telefon, E-posta, WiFi, Barkod)
+2. Gerekli bilgileri girin
+3. Özelleştirme seçeneklerini kullanarak QR kodunuzu kişiselleştirin
+4. "QR Oluştur" düğmesine tıklayın
+5. Oluşturulan QR kodu paylaşın veya kaydedin
 
-**app** dizini içindeki dosyaları düzenleyerek geliştirmeye başlayabilirsiniz. Bu proje [file-based routing](https://docs.expo.dev/router/introduction) kullanır.
+## 🛠 Teknolojiler
 
-## Daha fazla bilgi
+- [React Native](https://reactnative.dev/)
+- [Expo](https://expo.dev/)
+- [React Native QR Code SVG](https://github.com/awesomejerry/react-native-qrcode-svg)
+- [Expo Camera](https://docs.expo.dev/versions/latest/sdk/camera/)
+- [Expo Image Picker](https://docs.expo.dev/versions/latest/sdk/imagepicker/)
+- [Expo Sharing](https://docs.expo.dev/versions/latest/sdk/sharing/)
+- [React Native View Shot](https://github.com/gre/react-native-view-shot)
 
-Projenizi Expo ile geliştirme hakkında daha fazla bilgi için aşağıdaki kaynaklara bakın:
+## 📄 Lisans
 
-- [Expo belgeleri](https://docs.expo.dev/): Temel kavramları öğrenin veya [rehberlerimizle](https://docs.expo.dev/guides) ileri düzey konulara geçin.
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Android, iOS ve web'de çalışan bir proje oluşturacağınız adım adım bir öğreticiyi takip edin.
+Bu proje [MIT Lisansı](LICENSE) altında lisanslanmıştır.
 
-## Topluluğa katılın
+## 📞 İletişim
 
-Evrensel uygulamalar oluşturan geliştiricilerimizin topluluğuna katılın.
-
-- [GitHub'da Expo](https://github.com/expo/expo): Açık kaynak platformumuzu görüntüleyin ve katkıda bulunun.
-- [Discord topluluğu](https://chat.expo.dev): Expo kullanıcılarıyla sohbet edin ve sorular sorun.
+Sorularınız veya geri bildirimleriniz için [iletişim bilgilerinizi ekleyin].
