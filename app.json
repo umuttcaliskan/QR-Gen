@@ -8,6 +8,19 @@
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "splash": {
+      "backgroundColor": "#ffffff"
+    },
+    "statusBar": {
+      "backgroundColor": "#ffffff",
+      "style": "dark",
+      "hidden": false
+    },
+    "androidNavigationBar": {
+      "visible": false,
+      "barStyle": "dark-content",
+      "backgroundColor": "#ffffff"
+    },
     "ios": {
       "supportsTablet": true
     },
