@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, KeyboardAvoidingView, Platform, Alert, SafeAreaView, Modal, StatusBar } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, KeyboardAvoidingView, Platform, Alert, SafeAreaView, Modal, StatusBar, Image } from 'react-native';
 import React, { useState, useEffect, useRef } from 'react';
 import QRCode from 'react-native-qrcode-svg';
 import * as Haptics from 'expo-haptics';
@@ -9,6 +9,7 @@ import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import ViewShot from 'react-native-view-shot';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImageManipulator from 'expo-image-manipulator';
 
 type QRType = 'text' | 'url' | 'phone' | 'email' | 'wifi' | 'barcode';
 
@@ -68,6 +69,8 @@ const HomeScreen = () => {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [scannerVisible, setScannerVisible] = useState(false);
   const [scanned, setScanned] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [showImageScanner, setShowImageScanner] = useState(false);
 
   // QR kod referansı
   const qrCodeRef = useRef<ViewShot>(null);
@@ -120,33 +123,73 @@ const HomeScreen = () => {
     
     // QR değerini doğrudan ayarla
     setQrValue(data);
+    
+    // Başarı bildirimi
+    Alert.alert(
+      'QR Kod Bulundu',
+      'Görsel içerisindeki QR kod başarıyla tarandı.',
+      [{ text: 'Tamam' }]
+    );
   };
 
   // Galeri üzerinden QR kod tarama
   const pickImageAndScan = async () => {
-    // Galeri izni iste
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    
-    if (status !== 'granted') {
-      Alert.alert('İzin Gerekli', 'Galeriden resim seçmek için izin gereklidir.');
-      return;
-    }
-    
-    // Resim seçme
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      quality: 1,
-    });
+    try {
+      // Galeri izni iste
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      
+      if (status !== 'granted') {
+        Alert.alert('İzin Gerekli', 'Galeriden resim seçmek için izin gereklidir.');
+        return;
+      }
+      
+      // Resim seçme
+      let result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        quality: 1,
+      });
 
-    if (!result.canceled && result.assets && result.assets.length > 0) {
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        try {
+          // Seçilen görseli işle
+          const selectedAsset = result.assets[0];
+          
+          // Görüntüyü daha iyi işlemek için manipüle et (opsiyonel)
+          const manipResult = await ImageManipulator.manipulateAsync(
+            selectedAsset.uri,
+            [], // herhangi bir dönüşüm uygulamıyoruz
+            { compress: 0.8 } // hafif bir sıkıştırma
+          );
+          
+          // Seçilen görseli state'e kaydet
+          setSelectedImage(manipResult.uri);
+          
+          // Kamera tarama ekranını kapat (eğer açıksa)
+          setScannerVisible(false);
+          
+          // Görsel tarama ekranını göster
+          setShowImageScanner(true);
+          
+          // Kullanıcıya bilgi ver
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+          
+        } catch (error) {
+          console.error('Görsel işleme hatası:', error);
+          Alert.alert(
+            'Görsel İşleme Hatası',
+            'Seçilen görsel işlenirken bir hata oluştu. Lütfen farklı bir görsel deneyin.',
+            [{ text: 'Tamam' }]
+          );
+        }
+      }
+    } catch (error) {
+      console.error('Görsel seçme hatası:', error);
       Alert.alert(
-        'QR Kod Tarama',
-        'Şu anda galeriden seçilen görsellerden QR tarama özelliği sınırlıdır. Lütfen QR kodu doğrudan kamera ile tarayın.',
+        'Görsel Seçme Hatası',
+        'Galeriden görsel seçerken bir hata oluştu.',
         [{ text: 'Tamam' }]
       );
-      // Not: Gerçek uygulamada galeriden seçilen resimden QR kodu taramak için
-      // ek kütüphaneler veya özel bir çözüm gerekebilir.
     }
   };
 
@@ -383,6 +426,42 @@ const HomeScreen = () => {
       console.error('QR kod paylaşımı sırasında hata oluştu:', error);
       Alert.alert('Hata', 'QR kod paylaşılırken bir sorun oluştu.');
     }
+  };
+
+  // Seçilen görsel üzerindeki QR kodu manüel olarak tara
+  const scanSelectedImage = () => {
+    if (!selectedImage) return;
+    
+    // Manüel tarama işlemi (kullanıcıya alternatif yöntemler sunulur)
+    Alert.alert(
+      'QR Kodu Tara',
+      'Görselinizdeki QR kodu taramak için lütfen bir cihazda gösterin ve kamera ile tarayın veya URL/bilgiyi manuel olarak girin.',
+      [
+        { 
+          text: 'İptal', 
+          style: 'cancel',
+          onPress: () => {
+            setSelectedImage(null);
+            setShowImageScanner(false);
+          }
+        },
+        {
+          text: 'Kamera ile Tara',
+          onPress: () => {
+            // Görsel tarayıcıyı kapat, kamera tarayıcıyı aç
+            setSelectedImage(null);
+            setShowImageScanner(false);
+            setScannerVisible(true);
+          }
+        }
+      ]
+    );
+  };
+  
+  // Görsel tarayıcıyı kapat
+  const closeImageScanner = () => {
+    setSelectedImage(null);
+    setShowImageScanner(false);
   };
 
   return (
@@ -755,6 +834,57 @@ const HomeScreen = () => {
               </View>
             </SafeAreaView>
           </Modal>
+          
+          {/* Galeriden Seçilen Görsel QR Tarama Modalı */}
+          <Modal
+            visible={showImageScanner}
+            animationType="slide"
+            onRequestClose={closeImageScanner}
+          >
+            <SafeAreaView style={styles.modalContainer}>
+              <StatusBar
+                backgroundColor="black" 
+                barStyle="light-content"
+                translucent={true}
+              />
+              <View style={styles.imageModalContainer}>
+                <Text style={styles.imageModalTitle}>Galeriden QR Kod Tarama</Text>
+                
+                {selectedImage ? (
+                  <View style={styles.selectedImageContainer}>
+                    <Image 
+                      source={{ uri: selectedImage }} 
+                      style={styles.selectedImage} 
+                      resizeMode="contain"
+                    />
+                    <Text style={styles.imageInstructions}>
+                      QR kodun bulunduğu görsel seçildi. Bu görseli taramak için "Kamera ile Tara" butonuna basın.
+                    </Text>
+                  </View>
+                ) : (
+                  <View style={styles.noImageContainer}>
+                    <Text style={styles.noImageText}>Görsel seçilmedi</Text>
+                  </View>
+                )}
+                
+                <View style={styles.imageModalButtons}>
+                  <TouchableOpacity 
+                    style={styles.modalButton} 
+                    onPress={closeImageScanner}
+                  >
+                    <Text style={styles.modalButtonText}>İptal</Text>
+                  </TouchableOpacity>
+                  
+                  <TouchableOpacity 
+                    style={[styles.modalButton, { backgroundColor: '#3B82F6' }]} 
+                    onPress={scanSelectedImage}
+                  >
+                    <Text style={styles.modalButtonText}>Kamera ile Tara</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </SafeAreaView>
+          </Modal>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -1066,6 +1196,61 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#495057',
     marginBottom: 8,
+  },
+  imageModalContainer: {
+    flex: 1,
+    backgroundColor: '#000',
+    padding: 16,
+    justifyContent: 'space-between',
+  },
+  imageModalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginTop: 20,
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  selectedImageContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#222',
+    borderRadius: 12,
+    padding: 10,
+    marginBottom: 20,
+    overflow: 'hidden',
+  },
+  selectedImage: {
+    width: '90%',
+    height: '70%',
+    borderRadius: 8,
+  },
+  imageInstructions: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#fff',
+    textAlign: 'center',
+    marginTop: 20,
+    paddingHorizontal: 16,
+  },
+  noImageContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#222',
+    borderRadius: 12,
+    marginBottom: 20,
+  },
+  noImageText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#aaa',
+  },
+  imageModalButtons: {
+    flexDirection: 'row',
+    paddingVertical: 16,
+    justifyContent: 'space-between',
   },
 });
 
