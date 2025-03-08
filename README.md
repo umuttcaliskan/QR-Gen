@@ -1,50 +1,42 @@
-# Welcome to your Expo app 👋
+# QR-Gen
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+React Native ile geliştirilmiş, QR kod oluşturma ve okuma özelliklerine sahip mobil uygulama.
 
-## Get started
+Bu bir [Expo](https://expo.dev) projesidir, [`create-expo-app`](https://www.npmjs.com/package/create-expo-app) ile oluşturulmuştur.
 
-1. Install dependencies
+## Başlangıç
+
+1. Bağımlılıkları yükleyin
 
    ```bash
    npm install
    ```
 
-2. Start the app
+2. Uygulamayı başlatın
 
    ```bash
     npx expo start
    ```
 
-In the output, you'll find options to open the app in a
+Çıktıda, uygulamayı şunlarda açmak için seçenekler bulacaksınız:
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
+- [Development build](https://docs.expo.dev/develop/development-builds/introduction/)
 - [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
 - [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+- [Expo Go](https://expo.dev/go), Expo ile uygulama geliştirmeyi denemek için sınırlı bir sandbox
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+**app** dizini içindeki dosyaları düzenleyerek geliştirmeye başlayabilirsiniz. Bu proje [file-based routing](https://docs.expo.dev/router/introduction) kullanır.
 
-## Get a fresh project
+## Daha fazla bilgi
 
-When you're ready, run:
+Projenizi Expo ile geliştirme hakkında daha fazla bilgi için aşağıdaki kaynaklara bakın:
 
-```bash
-npm run reset-project
-```
+- [Expo belgeleri](https://docs.expo.dev/): Temel kavramları öğrenin veya [rehberlerimizle](https://docs.expo.dev/guides) ileri düzey konulara geçin.
+- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Android, iOS ve web'de çalışan bir proje oluşturacağınız adım adım bir öğreticiyi takip edin.
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Topluluğa katılın
 
-## Learn more
+Evrensel uygulamalar oluşturan geliştiricilerimizin topluluğuna katılın.
 
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+- [GitHub'da Expo](https://github.com/expo/expo): Açık kaynak platformumuzu görüntüleyin ve katkıda bulunun.
+- [Discord topluluğu](https://chat.expo.dev): Expo kullanıcılarıyla sohbet edin ve sorular sorun.
