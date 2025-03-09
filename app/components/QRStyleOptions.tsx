@@ -2,7 +2,6 @@ import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import React from 'react';
 import { styles } from '../styles';
 import { Ionicons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
 import { COLOR_SCHEMES } from '../types';
 
 interface QRStyleOptionsProps {
@@ -91,6 +90,9 @@ const QRStyleOptions: React.FC<QRStyleOptionsProps> = ({
                 useGradient && {
                   backgroundColor: 'white',
                   overflow: 'hidden'
+                },
+                scheme.name === 'Beyaz' && {
+                  backgroundColor: scheme.background,
                 }
               ]}>
                 {useGradient && (

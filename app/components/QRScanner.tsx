@@ -30,6 +30,8 @@ const QRScanner: React.FC<QRScannerProps> = ({ visible, onClose, onCodeScanned, 
             [{ text: 'Tamam', onPress: onClose }]
           );
         }
+        // Tarayıcı her açıldığında scanned durumunu sıfırla
+        setScanned(false);
       }
     })();
   }, [visible, onClose]);
@@ -40,11 +42,17 @@ const QRScanner: React.FC<QRScannerProps> = ({ visible, onClose, onCodeScanned, 
     onCodeScanned(result.type, result.data);
   };
 
+  // Tarayıcı kapatıldığında yapılacak işlemler
+  const handleClose = () => {
+    setScanned(false); // scanned durumunu sıfırla
+    onClose();
+  };
+
   return (
     <Modal
       visible={visible}
       animationType="slide"
-      onRequestClose={onClose}
+      onRequestClose={handleClose}
     >
       <SafeAreaView style={styles.modalContainer}>
         <StatusBar
@@ -85,7 +93,7 @@ const QRScanner: React.FC<QRScannerProps> = ({ visible, onClose, onCodeScanned, 
         <View style={styles.modalButtons}>
           <TouchableOpacity 
             style={styles.modalButton} 
-            onPress={onClose}
+            onPress={handleClose}
           >
             <Text style={styles.modalButtonText}>İptal</Text>
           </TouchableOpacity>

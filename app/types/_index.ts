@@ -32,14 +32,15 @@ export interface ColorScheme {
 }
 
 export const COLOR_SCHEMES: ColorScheme[] = [
-  { name: 'Varsayılan', foreground: '#212529', background: 'white', gradient: ['#3B82F6', '#7048E8'] },
-  { name: 'Klasik', foreground: 'black', background: 'white', gradient: ['black', '#333333'] },
-  { name: 'Kırmızı', foreground: '#E53E3E', background: 'white', gradient: ['#E53E3E', '#C53030'] },
-  { name: 'Yeşil', foreground: '#38A169', background: 'white', gradient: ['#38A169', '#2F855A'] },
-  { name: 'Mavi', foreground: '#3182CE', background: 'white', gradient: ['#3182CE', '#2B6CB0'] },
-  { name: 'Mor', foreground: '#805AD5', background: 'white', gradient: ['#805AD5', '#6B46C1'] },
-  { name: 'Turuncu', foreground: '#DD6B20', background: 'white', gradient: ['#DD6B20', '#C05621'] },
-  { name: 'Pembe', foreground: '#D53F8C', background: 'white', gradient: ['#D53F8C', '#B83280'] },
+  { name: 'Varsayılan', foreground: '#4F46E5', background: 'white', gradient: ['#4F46E5', '#818CF8'] },
+  { name: 'Klasik', foreground: '#1E293B', background: 'white', gradient: ['#1E293B', '#475569'] },
+  { name: 'Kırmızı', foreground: '#EF4444', background: 'white', gradient: ['#EF4444', '#F87171'] },
+  { name: 'Yeşil', foreground: '#10B981', background: 'white', gradient: ['#10B981', '#34D399'] },
+  { name: 'Mavi', foreground: '#3B82F6', background: 'white', gradient: ['#3B82F6', '#60A5FA'] },
+  { name: 'Mor', foreground: '#8B5CF6', background: 'white', gradient: ['#8B5CF6', '#A78BFA'] },
+  { name: 'Turuncu', foreground: '#F97316', background: 'white', gradient: ['#F97316', '#FB923C'] },
+  { name: 'Pembe', foreground: '#EC4899', background: 'white', gradient: ['#EC4899', '#F472B6'] },
+  { name: 'Beyaz', foreground: 'white', background: '#000000', gradient: ['white', '#f8fafc'] },
 ];
 
 // Expo Router'un uyarısını gidermek için boş bir bileşen ekliyorum

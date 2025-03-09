@@ -1,17 +1,13 @@
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, KeyboardAvoidingView, Platform, Alert, SafeAreaView, Modal, StatusBar, Image, Linking } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, KeyboardAvoidingView, Platform, Alert, SafeAreaView, StatusBar, Linking } from 'react-native';
 import React, { useState, useEffect, useRef } from 'react';
-import QRCode from 'react-native-qrcode-svg';
 import * as Haptics from 'expo-haptics';
-import { Camera, CameraView, BarcodeScanningResult } from 'expo-camera';
+import { Camera } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
-import Barcode from './components/Barcode';
-import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import ViewShot from 'react-native-view-shot';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImageManipulator from 'expo-image-manipulator';
-import WifiManager from 'react-native-wifi-reborn';
-
+import { expo } from '../app.json';
 // Services
 import WifiService from './services/WifiService';
 import QRCodeService from './services/QRCodeService';
@@ -108,6 +104,9 @@ const HomeScreen = () => {
 
   // QR kodu tarama işlevi
   const handleBarCodeScanned = (type: string, data: string) => {
+    // QR kod tarayıcıyı kapat
+    setScannerVisible(false);
+    
     // Taranan QR kodun türünü belirle ve state'i güncelle
     if (data.startsWith('http')) {
       setSelectedType('url');
@@ -264,12 +263,18 @@ const HomeScreen = () => {
 
   // Renk şeması seçme fonksiyonu
   const handleColorSchemeSelect = (index: number) => {
+    const selectedScheme = COLOR_SCHEMES[index];
+    setQrForegroundColor(selectedScheme.foreground);
+    setGradientColors(selectedScheme.gradient);
+    
+    // Beyaz renk seçildiğinde arka plan rengini değiştir
+    if (selectedScheme.name === 'Beyaz') {
+      setQrBackgroundColor(selectedScheme.background);
+    } else {
+      setQrBackgroundColor('white');
+    }
+    
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    const scheme = COLOR_SCHEMES[index];
-    setQrForegroundColor(scheme.foreground);
-    setQrBackgroundColor(scheme.background);
-    setGradientColors(scheme.gradient);
-    setUseGradient(true);
   };
 
   // Gradyan kullanımını değiştirme
@@ -758,7 +763,7 @@ const HomeScreen = () => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar
-        backgroundColor="white"
+        backgroundColor="#F8F9FA"
         barStyle="dark-content"
         translucent={false}
       />
@@ -769,14 +774,13 @@ const HomeScreen = () => {
         <ScrollView 
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
-          <View style={{ 
-            flexDirection: 'row', 
-            alignItems: 'center', 
-            justifyContent: 'center', 
-            marginVertical: 24
-          }}>
-            <Ionicons name="qr-code" size={36} color="#3B82F6" style={{ marginRight: 10 }} />
+          {/* Başlık Bölümü */}
+          <View style={styles.headerContainer}>
+            <View style={styles.logoIcon}>
+              <Ionicons name="qr-code" size={24} color="white" />
+            </View>
             <Text style={styles.title}>QR-Gen</Text>
           </View>
           
@@ -785,10 +789,8 @@ const HomeScreen = () => {
             style={styles.scanButton} 
             onPress={openScanner}
           >
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-              <Ionicons name="qr-code-outline" size={22} color="white" style={{ marginRight: 8 }} />
-              <Text style={styles.scanButtonText}>QR Kod Tara</Text>
-            </View>
+            <Ionicons name="scan-outline" size={20} color="white" style={{ marginRight: 8 }} />
+            <Text style={styles.scanButtonText}>QR Kod Tara</Text>
           </TouchableOpacity>
           
           {/* QR Kod Türü Seçimi */}
@@ -877,6 +879,20 @@ const HomeScreen = () => {
             onScan={scanSelectedImage}
             selectedImage={selectedImage}
           />
+          
+          {/* Footer - Powered by Picksoso */}
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>
+              Powered by{' '}
+              <Text 
+                style={[styles.footerText, styles.linkText]} 
+                onPress={() => Linking.openURL('https://picksoso.com')}
+              >
+                Picksoso
+              </Text>
+              {expo.version && ` • v${expo.version}`}
+            </Text>
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -1243,6 +1259,36 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     paddingVertical: 16,
     justifyContent: 'space-between',
+  },
+  headerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  logoIcon: {
+    backgroundColor: '#3B82F6',
+    borderRadius: 12,
+    padding: 8,
+    marginRight: 10,
+  },
+  footer: {
+    width: '100%',
+    paddingVertical: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderTopWidth: 1,
+    borderTopColor: '#E9ECEF',
+    backgroundColor: 'white',
+    marginTop: 24,
+  },
+  footerText: {
+    fontSize: 12,
+    color: '#6C757D',
+    fontWeight: '500',
+  },
+  linkText: {
+    color: '#3B82F6',
+    textDecorationLine: 'underline',
   },
 });
 
