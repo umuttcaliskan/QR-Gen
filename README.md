@@ -1,64 +1,88 @@
-# QR-Gen
+# QR-Gen: Gelişmiş QR Kod Üretici ve Tarayıcı
 
-QR-Gen, QR kodları ve barkodlar oluşturmanıza, özelleştirmenize, taramanıza ve paylaşmanıza olanak tanıyan bir mobil uygulamadır. Expo ve React Native ile geliştirilmiştir.
+QR-Gen, tek bir uygulama içinde kapsamlı QR kod oluşturma ve tarama özellikleri sunan modern bir mobil uygulamadır. Kullanıcılar basit metinden gelişmiş kişisel kartvizitlere kadar çeşitli içerik türleri için özelleştirilebilir QR kodları oluşturabilir, tarayabilir ve paylaşabilirler.
 
-## 🚀 Özellikler
+## ✨ Özellikler
 
-- **QR Kod Oluşturma**: Metin, URL, telefon numarası, e-posta ve WiFi bilgileri için QR kodlar oluşturun
-- **Barkod Oluşturma**: Çeşitli formatlarda barkodlar oluşturun
-- **QR Kod Özelleştirme**: 
-  - Renkler ve gradyan seçenekleri
-  - Logo ekleme
-  - Kenar boşluğu ayarlama
-  - Hata düzeltme seviyesi belirleme
-- **QR Kod ve Barkod Tarama**: Kamera kullanarak QR kodları ve barkodları tarayın
-- **Galeri Tarama**: Galeriden seçilen görsellerden QR kodu okuma
-- **Paylaşım**: Oluşturduğunuz QR kodları resim olarak kaydedin ve paylaşın
+### QR Kod Oluşturma
+- **Çoklu İçerik Desteği**: Metin, URL, Telefon, E-posta, WiFi, Barkod, Konum, SMS, YouTube, Instagram, Twitter, Kişi Bilgisi, PayPal ve Spotify bağlantıları için özel QR kodları
+- **İleri Düzey Özelleştirme**: QR kodlarını renk şemaları, gradyan efektleri ve logo eklemek dahil olmak üzere kişiselleştirme
+- **Hata Düzeltme Seviyesi**: Farklı hata düzeltme seviyeleri ile QR kodun güvenilirliğini ayarlama
+- **Barkod Desteği**: Standart barkod oluşturma seçeneği
 
-## 💻 Kurulum
+### QR Kod Tarama
+- **Kamera Tarayıcısı**: Gerçek zamanlı QR kod tarama özelliği
+- **Galeri Taraması**: Telefon galerisinden seçilen görsellerden QR kod ve barkod tarama
+- **Çoklu Format Desteği**: Farklı QR kod formatlarını ve barkodları tanıma ve işleme
 
-1. Projeyi klonlayın:
+### Ek Özellikler
+- **Paylaşım Seçenekleri**: Oluşturulan QR kodlarını görüntü olarak paylaşma
+- **Doğrudan Erişim**: WiFi QR kodları için otomatik bağlanma desteği
+- **Modern Arayüz**: Kullanımı kolay, sezgisel ve estetik kullanıcı arayüzü
+- **Otomatik Boyutlandırma**: İçerik uzunluğuna göre otomatik QR kod boyutu optimizasyonu
+
+## 🚀 Başlangıç
+
+### Gereksinimler
+- Node.js 16 veya üzeri
+- Expo CLI
+- Android Studio (Android geliştirme için)
+- Xcode (iOS geliştirme için)
+
+### Kurulum
+
 ```bash
-git clone https://github.com/your-username/qr-gen.git
+# Repository'yi klonlayın
+git clone https://github.com/username/qr-gen.git
 cd qr-gen
-```
 
-2. Bağımlılıkları yükleyin:
-```bash
+# Bağımlılıkları yükleyin
 npm install
-# veya
-yarn install
-```
 
-3. Uygulamayı başlatın:
-```bash
+# Uygulamayı başlatın
 npm start
-# veya
-yarn start
 ```
 
-## 📱 Kullanım
+## 📱 Kullanım Kılavuzu
 
-1. Uygulamayı açın ve oluşturmak istediğiniz QR kod türünü seçin (Metin, URL, Telefon, E-posta, WiFi, Barkod)
-2. Gerekli bilgileri girin
-3. Özelleştirme seçeneklerini kullanarak QR kodunuzu kişiselleştirin
-4. "QR Oluştur" düğmesine tıklayın
-5. Oluşturulan QR kodu paylaşın veya kaydedin
+1. **QR Kod Oluşturma**:
+   - Ana ekranda istediğiniz QR kod türünü seçin
+   - İlgili bilgileri girin (URL, telefon numarası, vb.)
+   - Renk, boyut ve diğer görsel özellikleri ayarlayın
+   - QR kodunuzu paylaşın veya kaydedin
 
-## 🛠 Teknolojiler
+2. **QR Kod Tarama**:
+   - Tarayıcı simgesine tıklayarak kamera tarayıcısını açın
+   - Galeriden bir QR kod görüntüsü seçmek için "Galeriden Seç" seçeneğini kullanın
+   - Taranan bilgiyi görüntüleyin ve ilgili eylemleri gerçekleştirin
 
-- [React Native](https://reactnative.dev/)
-- [Expo](https://expo.dev/)
-- [React Native QR Code SVG](https://github.com/awesomejerry/react-native-qrcode-svg)
-- [Expo Camera](https://docs.expo.dev/versions/latest/sdk/camera/)
-- [Expo Image Picker](https://docs.expo.dev/versions/latest/sdk/imagepicker/)
-- [Expo Sharing](https://docs.expo.dev/versions/latest/sdk/sharing/)
-- [React Native View Shot](https://github.com/gre/react-native-view-shot)
+## 🛠️ Teknik Detaylar
 
-## 📄 Lisans
+QR-Gen, aşağıdaki teknolojileri kullanmaktadır:
 
-Bu proje [MIT Lisansı](LICENSE) altında lisanslanmıştır.
+- **React Native & Expo**: Modern mobil uygulama geliştirme çerçevesi
+- **Expo Router**: Sayfa yönlendirmeleri için kullanılan sistem
+- **Expo Barcode Scanner & Camera**: QR kod tarama ve kamera işlevleri
+- **React Native QRCode SVG**: Yüksek kaliteli QR kod oluşturma
+- **React Native Barcode Generator**: Barkod oluşturma
+- **TypeScript**: Tip güvenliği için
 
-## 📞 İletişim
+## 🔒 İzinler
 
-Sorularınız veya geri bildirimleriniz için; www.picksoso.com
+Uygulama aşağıdaki izinleri kullanır:
+- Kamera erişimi (QR kod tarama için)
+- Galeri erişimi (QR kod görsellerini kaydetmek ve galeriden tarama yapmak için)
+- Konum erişimi (Android'de WiFi tarama için gerekli)
+- WiFi erişimi (WiFi QR kodlarını okumak ve bağlanmak için)
+
+## 📝 Lisans
+
+Bu proje MIT Lisansı altında lisanslanmıştır. Daha fazla bilgi için `LICENSE` dosyasına bakın.
+
+## ✍️ İletişim
+
+Geliştirici: Umut Çalışkan
+GitHub: https://github.com/umuttcaliskan
+E-posta: destek@picksoso.com
+
+Sorularınız veya geri bildirimleriniz için lütfen iletişime geçin.
