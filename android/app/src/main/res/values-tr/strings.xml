@@ -1,0 +1,18 @@
+<resources>
+  <string name="app_name">qr-gen</string>
+  <string name="permission_camera_rationale">QR kod taramak için kamera erişimine ihtiyaç duyulur</string>
+  <string name="camera_permission_denied">Kamera erişimi reddedildi. Ayarlardan erişim izni verebilirsiniz.</string>
+  <string name="camera_permission_title">Kamera İzni</string>
+  <string name="camera_permission_available">Kamera izni verildi</string>
+  <string name="camera_permission_not_available">Kamera izni yok</string>
+  <string name="camera_permission_request">Kamera izni iste</string>
+
+  <string name="location_permission_title">Konum İzni</string>
+  <string name="location_permission_available">Konum izni verildi</string>
+  <string name="location_permission_not_available">Konum izni yok</string>
+  <string name="location_permission_request">Konum izni iste</string>
+
+  <string name="storage_permission_title">Depolama İzni</string>
+  <string name="storage_permission_rationale">QR kodları kaydetmek için depolama erişimine ihtiyaç duyulur</string>
+  <string name="storage_permission_denied">Depolama erişimi reddedildi. Ayarlardan erişim izni verebilirsiniz.</string>
+</resources> 

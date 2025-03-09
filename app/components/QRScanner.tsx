@@ -2,7 +2,6 @@ import { View, Text, Modal, TouchableOpacity, SafeAreaView, StatusBar, Alert } f
 import React, { useEffect, useState } from 'react';
 import { styles } from '../styles';
 import { Camera, CameraView, BarcodeScanningResult } from 'expo-camera';
-import * as ImagePicker from 'expo-image-picker';
 import * as Haptics from 'expo-haptics';
 import { StyleSheet } from 'react-native';
 

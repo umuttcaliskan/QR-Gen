@@ -8,6 +8,7 @@ import ViewShot from 'react-native-view-shot';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { expo } from '../app.json';
+
 // Services
 import WifiService from './services/WifiService';
 import QRCodeService from './services/QRCodeService';

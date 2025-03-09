@@ -2,7 +2,7 @@
   "expo": {
     "name": "qr-gen",
     "slug": "qr-gen",
-    "version": "1.0.1",
+    "version": "1.0.4",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
@@ -40,7 +40,8 @@
         "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.ACCESS_WIFI_STATE",
         "android.permission.CHANGE_WIFI_STATE"
-      ]
+      ],
+      "package": "com.picksoso.qrgen"
     },
     "web": {
       "bundler": "metro",
@@ -58,7 +59,20 @@
           "backgroundColor": "#ffffff"
         }
       ],
-      "react-native-wifi-reborn"
+      "react-native-wifi-reborn",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "QR-Gen uygulamasının kameranıza erişmesine izin verin",
+          "microphonePermission": "QR-Gen uygulamasının mikrofonunuza erişmesine izin verin"
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "QR-Gen uygulamasının fotoğraflarınıza erişmesine izin verin"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
