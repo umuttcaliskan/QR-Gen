@@ -1,5 +1,9 @@
 # QR-Gen: Gelişmiş QR Kod Üretici ve Tarayıcı
 
+<p align="center">
+  <img src="assets/images/qr-gen.png" alt="QR-Gen Logo" width="200"/>
+</p>
+
 QR-Gen, tek bir uygulama içinde kapsamlı QR kod oluşturma ve tarama özellikleri sunan modern bir mobil uygulamadır. Kullanıcılar basit metinden gelişmiş kişisel kartvizitlere kadar çeşitli içerik türleri için özelleştirilebilir QR kodları oluşturabilir, tarayabilir ve paylaşabilirler.
 
 ## ✨ Özellikler
